@@ -252,7 +252,6 @@ func GetBookList(w http.ResponseWriter, r *http.Request) {
 
 	queryStatus := r.URL.Query().Get("status")
 
-	fmt.Println(queryStatus)
 	var cursor *mongo.Cursor
 	var err error
 	if queryStatus != "" {
