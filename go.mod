@@ -7,6 +7,8 @@ require (
 	go.mongodb.org/mongo-driver v1.10.1
 )
 
+require github.com/lib/pq v1.10.7 // indirect
+
 require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
@@ -17,6 +19,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.5 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
+	github.com/mattes/migrate v3.0.1+incompatible
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect

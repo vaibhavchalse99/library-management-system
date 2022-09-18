@@ -1,11 +1,16 @@
 package db
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"os"
 	"time"
 
+	_ "github.com/lib/pq"
+	"github.com/mattes/migrate"
+	"github.com/mattes/migrate/database/postgres"
+	_ "github.com/mattes/migrate/source/file"
 	"github.com/vaibhavchalse99/config"
 )
 
@@ -44,4 +49,29 @@ func createFile(filename string) error {
 	}
 	err = f.Close()
 	return err
+}
+
+func RunMigration() error {
+	dbConfig := config.Database()
+	db, err := sql.Open(dbConfig.Driver(), dbConfig.ConnectionUrl())
+	if err != nil {
+		return err
+	}
+	driverInstance, err := postgres.WithInstance(db, &postgres.Config{})
+	if err != nil {
+		return err
+	}
+	m, err := migrate.NewWithDatabaseInstance(getMigrationFilePath(), dbConfig.Driver(), driverInstance)
+	if err != nil {
+		return err
+	}
+	err = m.Up()
+	if err == migrate.ErrNoChange || err == nil {
+		return nil
+	}
+	return err
+}
+
+func getMigrationFilePath() string {
+	return fmt.Sprintf("file://%s", config.Migrationpath())
 }

@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/urfave/cli"
+	"github.com/vaibhavchalse99/app"
 	"github.com/vaibhavchalse99/config"
 	"github.com/vaibhavchalse99/db"
 	"github.com/vaibhavchalse99/server"
@@ -11,8 +12,8 @@ import (
 
 func main() {
 	config.Load()
-	// app.Init()
-	// defer app.Close()
+	app.Init()
+	defer app.Close()
 
 	cliApp := cli.NewApp()
 	cliApp.Name = "Golang app"
@@ -33,6 +34,15 @@ func main() {
 				return db.CreateMigration(c.Args().Get(0))
 			},
 		},
+		{
+			Name:  "migrate",
+			Usage: "run db migration",
+			Action: func(c *cli.Context) error {
+				return db.RunMigration()
+			},
+		},
 	}
-	cliApp.Run(os.Args)
+	if err := cliApp.Run(os.Args); err != nil {
+		panic(err)
+	}
 }
