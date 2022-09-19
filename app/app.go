@@ -45,6 +45,14 @@ func initDB() (err error) {
 	return
 }
 
+func GetDB() *sqlx.DB {
+	return db
+}
+
+func GetLogger() *zap.SugaredLogger {
+	return logger
+}
+
 func Close() {
 	logger.Sync()
 	db.Close()

@@ -37,6 +37,14 @@ func Load() {
 	}
 }
 
+func AppPort() int {
+	return appConfig.port
+}
+
+func AppName() string {
+	return appConfig.appName
+}
+
 func Migrationpath() string {
 	return appConfig.migrationPath
 }

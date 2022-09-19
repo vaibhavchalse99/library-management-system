@@ -7,7 +7,10 @@ require (
 	go.mongodb.org/mongo-driver v1.10.1
 )
 
-require github.com/lib/pq v1.10.7 // indirect
+require (
+	github.com/lib/pq v1.10.7 // indirect
+	github.com/urfave/negroni v1.0.0 // indirect
+)
 
 require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d // indirect
