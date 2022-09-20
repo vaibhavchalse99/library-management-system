@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/lib/pq v1.10.7 // indirect
 	github.com/urfave/negroni v1.0.0 // indirect
 )
@@ -16,6 +17,7 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

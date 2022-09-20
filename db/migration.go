@@ -20,14 +20,10 @@ func CreateMigration(fileName string) error {
 	}
 
 	timestamp := time.Now().Unix()
-	fmt.Println("abc", config.Migrationpath())
 
 	upMigrationFilePath := fmt.Sprintf("%s/%d_%s.up.sql", config.Migrationpath(), timestamp, fileName)
 	downMigrationFilePath := fmt.Sprintf("%s/%d_%s.down.sql", config.Migrationpath(), timestamp, fileName)
-	fmt.Printf(upMigrationFilePath)
 	if err := createFile(upMigrationFilePath); err != nil {
-		fmt.Print("err", err)
-
 		return err
 	}
 

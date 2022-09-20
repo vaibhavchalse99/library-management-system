@@ -13,6 +13,7 @@ type config struct {
 	port          int
 	migrationPath string
 	db            dbConfig
+	secretKey     string
 }
 
 var appConfig config
@@ -34,6 +35,7 @@ func Load() {
 		port:          readEnvInt("APP_PORT"),
 		migrationPath: readEnvString("MIGRATION_PATH"),
 		db:            getDatabaseConfig(),
+		secretKey:     readEnvString("SECRET_HASH_KEY"),
 	}
 }
 
@@ -47,6 +49,10 @@ func AppName() string {
 
 func Migrationpath() string {
 	return appConfig.migrationPath
+}
+
+func SecretHashKey() string {
+	return appConfig.secretKey
 }
 
 func readEnvInt(key string) int {

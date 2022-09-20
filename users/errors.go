@@ -7,4 +7,5 @@ var (
 	errEmptyEmail    = errors.New("User email must be present")
 	errEmptyPassword = errors.New("User password must be present")
 	errEmptyRole     = errors.New("User role must be present")
+	errUserNotExist  = errors.New("User not exist")
 )

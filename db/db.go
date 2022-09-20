@@ -18,7 +18,8 @@ const (
 
 type UserStorer interface {
 	CreateUser(ctx context.Context, user *User) (err error)
-	GetUsers(ctx context.Context)
+	GetUsers(ctx context.Context) (users []User, err error)
+	GetUserDetails(ctx context.Context, email string, password string) (user []User, err error)
 	UpdateUser(ctx context.Context)
 }
 

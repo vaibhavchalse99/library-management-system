@@ -4,14 +4,18 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const (
-	CreateUser = `INSERT INTO users(name, email, password, role, created_at, updated_at) VALUES($1,$2,$3,$4,$5,$6)`
+	CreateUserQuery     = `INSERT INTO users(name, email, password, role, created_at, updated_at) VALUES($1,$2,$3,$4,$5,$6)`
+	getUserListQuery    = `SELECT * FROM users`
+	getUserDetailsQuery = `SELECT * FROM users WHERE email=$1 AND password=$2`
 )
 
 type User struct {
-	ID        string    `db:"id"`
+	ID        uuid.UUID `db:"id"`
 	Name      string    `db:"name"`
 	Email     string    `db:"email"`
 	Password  string    `db:"password"`
@@ -24,7 +28,7 @@ func (d *userStore) CreateUser(ctx context.Context, user *User) (err error) {
 	now := time.Now()
 	return Transact(ctx, d.db, &sql.TxOptions{}, func(ctx context.Context) error {
 		_, err = d.db.Exec(
-			CreateUser,
+			CreateUserQuery,
 			user.Name,
 			user.Email,
 			user.Password,
@@ -36,8 +40,25 @@ func (d *userStore) CreateUser(ctx context.Context, user *User) (err error) {
 	})
 }
 
-func (d *userStore) GetUsers(ctx context.Context) {
+func (d *userStore) GetUsers(ctx context.Context) (users []User, err error) {
+	err = WithDefaultTimeout(ctx, func(ctx context.Context) error {
+		return d.db.SelectContext(ctx, &users, getUserListQuery)
+	})
+	if err == sql.ErrNoRows {
+		return users, ErrUserNotExist
+	}
 
+	return
+}
+
+func (d *userStore) GetUserDetails(ctx context.Context, email string, password string) (user []User, err error) {
+	err = WithDefaultTimeout(ctx, func(ctx context.Context) error {
+		return d.db.SelectContext(ctx, &user, getUserDetailsQuery, email, password)
+	})
+	if len(user) == 0 {
+		return user, ErrUserNotExist
+	}
+	return
 }
 
 func (d *userStore) UpdateUser(ctx context.Context) {
