@@ -10,6 +10,9 @@ type listResponse struct {
 	Users []User `json:"users"`
 }
 
+type response struct {
+	User User `json:"user"`
+}
 type User struct {
 	ID        uuid.UUID `json:"id"`
 	Name      string    `json:"name"`

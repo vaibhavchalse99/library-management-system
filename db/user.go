@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	CreateUserQuery     = `INSERT INTO users(name, email, password, role, created_at, updated_at) VALUES($1,$2,$3,$4,$5,$6)`
-	getUserListQuery    = `SELECT * FROM users`
-	getUserDetailsQuery = `SELECT * FROM users WHERE email=$1 AND password=$2`
+	CreateUserQuery         = `INSERT INTO users(name, email, password, role, created_at, updated_at) VALUES($1,$2,$3,$4,$5,$6)`
+	getUserListQuery        = `SELECT * FROM users`
+	getUserDetailsQuery     = `SELECT * FROM users WHERE email=$1 AND password=$2`
+	getUserDetailsByIdQuery = `SELECT * FROM users WHERE id=$1`
 )
 
 type User struct {
@@ -57,6 +58,16 @@ func (d *userStore) GetUserDetails(ctx context.Context, email string, password s
 	})
 	if len(user) == 0 {
 		return user, ErrUserNotExist
+	}
+	return
+}
+
+func (d *userStore) GetUserDetailsById(ctx context.Context, userId string) (users []User, err error) {
+	err = WithDefaultTimeout(ctx, func(ctx context.Context) error {
+		return d.db.SelectContext(ctx, &users, getUserDetailsByIdQuery, userId)
+	})
+	if len(users) == 0 {
+		return users, ErrUserNotExist
 	}
 	return
 }

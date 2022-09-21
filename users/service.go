@@ -8,9 +8,10 @@ import (
 )
 
 type Service interface {
-	create(ctx context.Context, req createRequest) (err error)
-	list(ctx context.Context) (response listResponse, err error)
+	Create(ctx context.Context, req createRequest) (err error)
+	List(ctx context.Context) (response listResponse, err error)
 	Login(ctx context.Context, req userCredentials) (response tokenResponse, err error)
+	GetById(ctx context.Context, userId string) (response response, err error)
 }
 
 type userService struct {
@@ -18,7 +19,7 @@ type userService struct {
 	logger *zap.SugaredLogger
 }
 
-func (us *userService) create(ctx context.Context, req createRequest) (err error) {
+func (us *userService) Create(ctx context.Context, req createRequest) (err error) {
 	err = req.Validate()
 
 	if err != nil {
@@ -40,28 +41,42 @@ func (us *userService) create(ctx context.Context, req createRequest) (err error
 	return
 }
 
-func (us *userService) list(ctx context.Context) (response listResponse, err error) {
+func (us *userService) List(ctx context.Context) (response listResponse, err error) {
 	dbUsers, err := us.store.GetUsers(ctx)
 	if err == db.ErrUserNotExist {
 		us.logger.Error("user not present", "err", err.Error())
-		return response, errUserNotExist
+		return response, ErrUserNotExist
 	}
 	if err != nil {
 		us.logger.Error("Error listing users", "users", err.Error())
 		return
 	}
 	for _, dbUser := range dbUsers {
-		var user User
-		user.ID = dbUser.ID
-		user.Email = dbUser.Email
-		user.Name = dbUser.Name
-		user.Role = dbUser.Role
-		user.Password = ""
-		user.CreatedAt = dbUser.CreatedAt
-		user.UpdatedAt = dbUser.UpdatedAt
-
+		user := mapUserData(dbUser)
 		response.Users = append(response.Users, user)
 	}
+	return
+}
+
+func (us *userService) GetById(ctx context.Context, userId string) (response response, err error) {
+	if userId == "" {
+		us.logger.Error("Invalid request for UserData", "msg", err.Error(), "user", userId)
+		return response, errEmptyID
+	}
+	dbUsers, err := us.store.GetUserDetailsById(ctx, userId)
+
+	if err == db.ErrUserNotExist {
+		us.logger.Error("user not present", "err", err.Error())
+		return response, ErrUserNotExist
+	}
+	if err != nil {
+		us.logger.Error("Error Getting user by Id", "user", err.Error())
+		return
+	}
+	dbUser := dbUsers[0]
+
+	user := mapUserData(dbUser)
+	response.User = user
 	return
 }
 
@@ -75,7 +90,7 @@ func (us *userService) Login(ctx context.Context, req userCredentials) (response
 
 	if err != nil {
 		us.logger.Error("User Not exist", "user", err.Error())
-		return response, errUserNotExist
+		return response, ErrUserNotExist
 	}
 
 	token, err := createToken(dbUser[0].ID)

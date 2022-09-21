@@ -6,6 +6,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/google/uuid"
 	"github.com/vaibhavchalse99/config"
+	"github.com/vaibhavchalse99/db"
 )
 
 func createToken(userId uuid.UUID) (string, error) {
@@ -20,4 +21,15 @@ func createToken(userId uuid.UUID) (string, error) {
 		return "", err
 	}
 	return tokenString, nil
+}
+
+func mapUserData(dbUser db.User) (user User) {
+	user.ID = dbUser.ID
+	user.Email = dbUser.Email
+	user.Name = dbUser.Name
+	user.Role = dbUser.Role
+	user.Password = ""
+	user.CreatedAt = dbUser.CreatedAt
+	user.UpdatedAt = dbUser.UpdatedAt
+	return
 }

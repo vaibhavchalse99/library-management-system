@@ -5,6 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/vaibhavchalse99/api"
+	"github.com/vaibhavchalse99/middlewares"
 	"github.com/vaibhavchalse99/users"
 )
 
@@ -21,6 +22,7 @@ func initRouter(dep dependencies) (router *mux.Router) {
 	router.HandleFunc("/users", users.Create(dep.UserService)).Methods(http.MethodPost)
 	router.HandleFunc("/users", users.List(dep.UserService)).Methods(http.MethodGet)
 	router.HandleFunc("/users/login", users.UserLogin(dep.UserService)).Methods(http.MethodPost)
+	router.HandleFunc("/users/profile", middlewares.IsLoggedIn(users.GetProfileDetails(dep.UserService), dep.UserService)).Methods(http.MethodGet)
 
 	return
 }

@@ -20,6 +20,7 @@ type UserStorer interface {
 	CreateUser(ctx context.Context, user *User) (err error)
 	GetUsers(ctx context.Context) (users []User, err error)
 	GetUserDetails(ctx context.Context, email string, password string) (user []User, err error)
+	GetUserDetailsById(ctx context.Context, userId string) (users []User, err error)
 	UpdateUser(ctx context.Context)
 }
 
