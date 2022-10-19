@@ -77,3 +77,19 @@ func NewUserStorer(d *sqlx.DB) UserStorer {
 		db: d,
 	}
 }
+
+type bookStore struct {
+	db *sqlx.DB
+}
+
+type BookStorer interface {
+	CreateBook(ctx context.Context, name string, author string, price int) (book Book, err error)
+	BookList(ctx context.Context) (books []Book, err error)
+	GetBookById(ctx context.Context, bookId string) (book Book, err error)
+}
+
+func NewBookStorer(d *sqlx.DB) BookStorer {
+	return &bookStore{
+		db: d,
+	}
+}

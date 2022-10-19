@@ -5,6 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/vaibhavchalse99/api"
+	"github.com/vaibhavchalse99/books"
 	"github.com/vaibhavchalse99/middlewares"
 	"github.com/vaibhavchalse99/users"
 )
@@ -25,6 +26,9 @@ func initRouter(dep dependencies) (router *mux.Router) {
 	router.HandleFunc("/users/profile", middlewares.IsLoggedIn(users.GetProfileDetails(dep.UserService), dep.UserService)).Methods(http.MethodGet)
 	router.HandleFunc("/users/profile", middlewares.IsLoggedIn(users.UdateProfileDetails(dep.UserService), dep.UserService)).Methods(http.MethodPut)
 
+	router.HandleFunc("/books", middlewares.IsLoggedIn(books.Create(dep.BookService), dep.UserService)).Methods(http.MethodPost)
+	router.HandleFunc("/books", middlewares.IsLoggedIn(books.List(dep.BookService), dep.UserService)).Methods(http.MethodGet)
+	router.HandleFunc("/books/{bookId}", middlewares.IsLoggedIn(books.GetBookById(dep.BookService), dep.UserService)).Methods(http.MethodGet)
 	return
 }
 

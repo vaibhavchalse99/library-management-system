@@ -3,5 +3,6 @@ package db
 import "errors"
 
 var (
-	ErrUserNotExist = errors.New("User doesn't exist in db")
+	ErrUserNotExist  = errors.New("User doesn't exist")
+	ErrBooksNotExist = errors.New("Books not exist")
 )
