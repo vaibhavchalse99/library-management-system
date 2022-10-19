@@ -32,12 +32,13 @@ func Create(service Service) http.HandlerFunc {
 func List(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		response, err := service.List(r.Context())
-		if err == ErrUserNotExist {
-			api.Error(rw, http.StatusNotFound, api.Response{Message: err.Error()})
-			return
-		}
+
 		if err != nil {
-			api.Error(rw, http.StatusInternalServerError, api.Response{Message: err.Error()})
+			if err == ErrUserNotExist {
+				api.Error(rw, http.StatusNotFound, api.Response{Message: err.Error()})
+			} else {
+				api.Error(rw, http.StatusInternalServerError, api.Response{Message: err.Error()})
+			}
 			return
 		}
 		api.Success(rw, http.StatusOK, response)
@@ -52,26 +53,51 @@ func UserLogin(service Service) http.HandlerFunc {
 			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
 			return
 		}
-		response, err := service.Login(r.Context(), reqBody)
+		token, err := service.Login(r.Context(), reqBody)
 
-		if err == ErrUserNotExist {
-			api.Error(rw, http.StatusNotFound, api.Response{Message: ErrUserNotExist.Error()})
-			return
-		}
 		if err != nil {
-			api.Error(rw, http.StatusInternalServerError, api.Response{Message: err.Error()})
+			if err == ErrUserNotExist {
+				api.Error(rw, http.StatusNotFound, api.Response{Message: ErrUserNotExist.Error()})
+			} else {
+				api.Error(rw, http.StatusInternalServerError, api.Response{Message: err.Error()})
+			}
 			return
 		}
-		api.Success(rw, http.StatusOK, response)
+		api.Success(rw, http.StatusOK, token)
 	})
 }
 
 func GetProfileDetails(service Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		user := context.Get(r, "user").(User)
-		var response response
-		response.User = user
-		api.Success(rw, http.StatusOK, response)
+		api.Success(rw, http.StatusOK, user)
+	})
+}
+
+func UdateProfileDetails(service Service) http.HandlerFunc {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+
+		var reqBody updateRequest
+		err := json.NewDecoder(r.Body).Decode(&reqBody)
+
+		if err != nil {
+			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
+			return
+		}
+
+		user := context.Get(r, "user").(User)
+		updatedUser, err := service.UpdateById(r.Context(), reqBody, user.ID.String())
+
+		if err != nil {
+			if err == errInvalidRequest {
+				api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
+			} else {
+				api.Error(rw, http.StatusInternalServerError, api.Response{Message: err.Error()})
+			}
+			return
+		}
+
+		api.Success(rw, http.StatusOK, updatedUser)
 	})
 }
 

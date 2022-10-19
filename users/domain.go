@@ -33,9 +33,21 @@ type createRequest struct {
 	Role     string `json:"role"`
 }
 
+type updateRequest struct {
+	Name     string `json:"name"`
+	Password string `json:"password"`
+}
+
 type userCredentials struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+func (req updateRequest) Validate() (err error) {
+	if req.Name == "" && req.Password == "" {
+		return errInvalidRequest
+	}
+	return
 }
 
 func (req userCredentials) Validate() (err error) {

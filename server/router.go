@@ -23,6 +23,7 @@ func initRouter(dep dependencies) (router *mux.Router) {
 	router.HandleFunc("/users", users.List(dep.UserService)).Methods(http.MethodGet)
 	router.HandleFunc("/users/login", users.UserLogin(dep.UserService)).Methods(http.MethodPost)
 	router.HandleFunc("/users/profile", middlewares.IsLoggedIn(users.GetProfileDetails(dep.UserService), dep.UserService)).Methods(http.MethodGet)
+	router.HandleFunc("/users/profile", middlewares.IsLoggedIn(users.UdateProfileDetails(dep.UserService), dep.UserService)).Methods(http.MethodPut)
 
 	return
 }

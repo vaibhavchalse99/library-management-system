@@ -56,7 +56,7 @@ func IsLoggedIn(next http.HandlerFunc, service users.Service) http.HandlerFunc {
 			claims, ok := token.Claims.(jwt.MapClaims)
 			if ok {
 				userId := claims["user_id"].(string)
-				response, err := service.GetById(r.Context(), userId)
+				user, err := service.GetById(r.Context(), userId)
 				if err == users.ErrUserNotExist {
 					api.Error(rw, http.StatusNotFound, api.Response{Message: users.ErrUserNotExist.Error()})
 					return
@@ -65,7 +65,7 @@ func IsLoggedIn(next http.HandlerFunc, service users.Service) http.HandlerFunc {
 					api.Error(rw, http.StatusInternalServerError, api.Response{Message: err.Error()})
 					return
 				}
-				context.Set(r, "user", response.User)
+				context.Set(r, "user", user)
 				next(rw, r)
 			}
 		} else {
