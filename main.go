@@ -36,9 +36,16 @@ func main() {
 		},
 		{
 			Name:  "migrate",
-			Usage: "run db migration",
+			Usage: "run db migrations",
 			Action: func(c *cli.Context) error {
 				return db.RunMigration()
+			},
+		},
+		{
+			Name:  "rollback",
+			Usage: "rollback migrations",
+			Action: func(c *cli.Context) error {
+				return db.RollbackMigrations(c.Args().Get(0))
 			},
 		},
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -65,6 +66,25 @@ func RunMigration() error {
 	if err == migrate.ErrNoChange || err == nil {
 		return nil
 	}
+	return err
+}
+
+func RollbackMigrations(s string) error {
+	steps, err := strconv.Atoi(s)
+	if err != nil {
+		return err
+	}
+
+	m, err := migrate.New(getMigrationFilePath(), config.Database().ConnectionUrl())
+	if err != nil {
+		return err
+	}
+
+	err = m.Steps(-1 * steps)
+	if err == migrate.ErrNoChange || err == nil {
+		return nil
+	}
+
 	return err
 }
 
