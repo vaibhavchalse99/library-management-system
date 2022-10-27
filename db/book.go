@@ -3,23 +3,25 @@ package db
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type Book struct {
-	ID        uuid.UUID `db:"id"`
-	Name      string    `db:"name"`
-	Author    string    `db:"author"`
-	Price     int       `db:"price"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	ID          uuid.UUID `db:"id"`
+	Name        string    `db:"name"`
+	Author      string    `db:"author"`
+	Price       int       `db:"price"`
+	CopiesCount int       `db:"copies_count"`
+	CreatedAt   time.Time `db:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at"`
 }
 
 var (
 	CreateBookQuery  = `INSERT INTO books(name, author, price, created_at, updated_at) VALUES($1,$2,$3,$4,$5) RETURNING *`
-	GetBookListQuery = `SELECT * FROM books`
+	GetBookListQuery = `SELECT books.*,(SELECT COUNT(*) as copies_count FROM book_copies WHERE book_copies.book_id = books.id) FROM books`
 	GetBookByIdQuery = `SELECT * FROM books WHERE id = $1`
 	UpdateBookQuery  = `UPDATE books SET author=$1, name=$2, price=$3, updated_at=$4 where ID=$5 RETURNING* `
 
@@ -38,6 +40,7 @@ func (d *bookStore) BookList(ctx context.Context) (books []Book, err error) {
 	if err == sql.ErrNoRows {
 		return books, ErrBooksNotExist
 	}
+	fmt.Println(books)
 	return
 }
 

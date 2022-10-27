@@ -7,12 +7,13 @@ import (
 )
 
 type Book struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	Author    string    `json:"author"`
-	Price     int       `json:"price"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Author      string    `json:"author"`
+	Price       int       `json:"price"`
+	CopiesCount int       `json:"copies_count"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type createBookRequest struct {
