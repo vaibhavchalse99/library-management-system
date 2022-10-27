@@ -33,6 +33,10 @@ type createBookCopy struct {
 	BookId string `json:"bookId"`
 }
 
+type deleteBookCopy struct {
+	ISBN string `json:"isbn"`
+}
+
 type ISBNResponse struct {
 	ISBN string `json:"isbn"`
 }
@@ -72,6 +76,13 @@ func (req createBookCopy) Validate() (err error) {
 	}
 	if req.BookId == "" {
 		return errEmptyBookRef
+	}
+	return
+}
+
+func (req deleteBookCopy) Validate() (err error) {
+	if req.ISBN == "" {
+		return errEmptyBookNumber
 	}
 	return
 }

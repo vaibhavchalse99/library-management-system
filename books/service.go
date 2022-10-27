@@ -13,6 +13,7 @@ type Service interface {
 	GetBookById(ctx context.Context, bookId string) (book Book, err error)
 	UpdateBookById(ctx context.Context, req updateBookRequest) (book Book, err error)
 	AddBookCopy(ctx context.Context, req createBookCopy) (isbn string, err error)
+	RemoveBookCopy(ctx context.Context, req deleteBookCopy) (isbn string, err error)
 }
 
 type bookService struct {
@@ -95,6 +96,20 @@ func (bs *bookService) AddBookCopy(ctx context.Context, req createBookCopy) (isb
 		return
 	}
 	isbn, err = bs.store.AddBookcopy(ctx, req.ISBN, req.BookId)
+	if err != nil {
+		bs.logger.Errorw("Error while ading a copy", "error", err.Error())
+		return
+	}
+	return
+}
+
+func (bs *bookService) RemoveBookCopy(ctx context.Context, req deleteBookCopy) (isbn string, err error) {
+	err = req.Validate()
+	if err != nil {
+		bs.logger.Errorw("invalid request for book copy deletion", "msg", err.Error(), "req", req)
+		return
+	}
+	isbn, err = bs.store.RemoveBookcopy(ctx, req.ISBN)
 	if err != nil {
 		bs.logger.Errorw("Error while ading a copy", "error", err.Error())
 		return

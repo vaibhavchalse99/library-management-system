@@ -138,3 +138,30 @@ func AddBookCopy(service Service) http.HandlerFunc {
 		api.Success(rw, http.StatusOK, ISBNResponse{ISBN: isbn})
 	})
 }
+
+func RemoveBookCopy(service Service) http.HandlerFunc {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		//decoding the req data
+		var reqbody deleteBookCopy
+		err := json.NewDecoder(r.Body).Decode(&reqbody)
+		if err != nil {
+			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
+			return
+		}
+
+		//checking permission
+		loggedInUser := context.Get(r, "user").(users.User)
+		hasPermission := db.IsAuthorized(loggedInUser.Role, config.DeleteBook)
+		if !hasPermission {
+			api.Error(rw, http.StatusForbidden, api.Response{Message: "Access Denied"})
+			return
+		}
+		//add bookcopy
+		isbn, err := service.RemoveBookCopy(r.Context(), reqbody)
+		if err != nil {
+			api.Error(rw, http.StatusInternalServerError, api.Response{Message: err.Error()})
+			return
+		}
+		api.Success(rw, http.StatusOK, ISBNResponse{ISBN: isbn})
+	})
+}

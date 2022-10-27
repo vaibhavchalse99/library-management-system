@@ -23,7 +23,8 @@ var (
 	GetBookByIdQuery = `SELECT * FROM books WHERE id = $1`
 	UpdateBookQuery  = `UPDATE books SET author=$1, name=$2, price=$3, updated_at=$4 where ID=$5 RETURNING* `
 
-	AddBookCopyQuery = `INSERT INTO book_copies(isbn, book_id, created_at, updated_at) VALUES($1,$2,$3,$4) RETURNING isbn`
+	AddBookCopyQuery    = `INSERT INTO book_copies(isbn, book_id, created_at, updated_at) VALUES($1,$2,$3,$4) RETURNING isbn`
+	DeleteBookCopyQuery = `DELETE FROM book_copies WHERE isbn=$1 RETURNING isbn`
 )
 
 func (d *bookStore) CreateBook(ctx context.Context, name string, author string, price int) (book Book, err error) {
@@ -60,6 +61,14 @@ func (d *bookStore) UpdateBook(ctx context.Context, id, author, name string, pri
 func (d *bookStore) AddBookcopy(ctx context.Context, isbn, bookId string) (bookIsbn string, err error) {
 	now := time.Now()
 	err = d.db.GetContext(ctx, &bookIsbn, AddBookCopyQuery, isbn, bookId, now, now)
+	if err != nil {
+		return bookIsbn, err
+	}
+	return
+}
+
+func (d *bookStore) RemoveBookcopy(ctx context.Context, isbn string) (bookIsbn string, err error) {
+	err = d.db.GetContext(ctx, &bookIsbn, DeleteBookCopyQuery, isbn)
 	if err != nil {
 		return bookIsbn, err
 	}

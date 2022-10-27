@@ -33,6 +33,8 @@ func initRouter(dep dependencies) (router *mux.Router) {
 	router.HandleFunc("/books", middlewares.IsLoggedIn(books.UpdateBook(dep.BookService), dep.UserService)).Methods(http.MethodPut)
 
 	router.HandleFunc("/books/copies/add", middlewares.IsLoggedIn(books.AddBookCopy(dep.BookService), dep.UserService)).Methods(http.MethodPost)
+	router.HandleFunc("/books/copies/remove", middlewares.IsLoggedIn(books.RemoveBookCopy(dep.BookService), dep.UserService)).Methods(http.MethodPost)
+
 	return
 }
 
