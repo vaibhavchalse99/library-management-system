@@ -66,7 +66,7 @@ func IsLoggedIn(next http.HandlerFunc, service users.Service) http.HandlerFunc {
 					return
 				}
 				context.Set(r, "user", user)
-				next(rw, r)
+				next.ServeHTTP(rw, r)
 			}
 		} else {
 			api.Error(rw, http.StatusBadRequest, api.Response{Message: ErrTokenNotPresent.Error()})

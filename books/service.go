@@ -11,6 +11,8 @@ type Service interface {
 	Create(ctx context.Context, req createBookRequest) (book Book, err error)
 	List(ctx context.Context) (books []Book, err error)
 	GetBookById(ctx context.Context, bookId string) (book Book, err error)
+	UpdateBookById(ctx context.Context, req updateBookRequest) (book Book, err error)
+	AddBookCopy(ctx context.Context, req createBookCopy) (isbn string, err error)
 }
 
 type bookService struct {
@@ -65,6 +67,38 @@ func (bs *bookService) GetBookById(ctx context.Context, bookId string) (book Boo
 		return
 	}
 	book = Book(dbBook)
+	return
+}
+
+func (bs *bookService) UpdateBookById(ctx context.Context, req updateBookRequest) (book Book, err error) {
+	err = req.Validate()
+	if err != nil {
+		bs.logger.Errorw("invalid request for book updation", "msg", err.Error(), "req", req)
+		return
+	}
+
+	dbBook, err := bs.store.UpdateBook(ctx, req.ID, req.Author, req.Name, req.Price)
+
+	if err != nil {
+		bs.logger.Errorw("Error while creating a book", "error", err.Error())
+		return
+	}
+	book = Book(dbBook)
+	return
+
+}
+
+func (bs *bookService) AddBookCopy(ctx context.Context, req createBookCopy) (isbn string, err error) {
+	err = req.Validate()
+	if err != nil {
+		bs.logger.Errorw("invalid request for book copy creation", "msg", err.Error(), "req", req)
+		return
+	}
+	isbn, err = bs.store.AddBookcopy(ctx, req.ISBN, req.BookId)
+	if err != nil {
+		bs.logger.Errorw("Error while ading a copy", "error", err.Error())
+		return
+	}
 	return
 }
 

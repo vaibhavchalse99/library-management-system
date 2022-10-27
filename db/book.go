@@ -21,6 +21,9 @@ var (
 	CreateBookQuery  = `INSERT INTO books(name, author, price, created_at, updated_at) VALUES($1,$2,$3,$4,$5) RETURNING *`
 	GetBookListQuery = `SELECT * FROM books`
 	GetBookByIdQuery = `SELECT * FROM books WHERE id = $1`
+	UpdateBookQuery  = `UPDATE books SET author=$1, name=$2, price=$3, updated_at=$4 where ID=$5 RETURNING* `
+
+	AddBookCopyQuery = `INSERT INTO book_copies(isbn, book_id, created_at, updated_at) VALUES($1,$2,$3,$4) RETURNING isbn`
 )
 
 func (d *bookStore) CreateBook(ctx context.Context, name string, author string, price int) (book Book, err error) {
@@ -41,6 +44,24 @@ func (d *bookStore) GetBookById(ctx context.Context, bookId string) (book Book, 
 	err = d.db.GetContext(ctx, &book, GetBookByIdQuery, bookId)
 	if err == sql.ErrNoRows {
 		return book, ErrBooksNotExist
+	}
+	return
+}
+
+func (d *bookStore) UpdateBook(ctx context.Context, id, author, name string, price int) (book Book, err error) {
+	now := time.Now()
+	err = d.db.GetContext(ctx, &book, UpdateBookQuery, author, name, price, now, id)
+	if err == sql.ErrNoRows {
+		return book, ErrBooksNotExist
+	}
+	return
+}
+
+func (d *bookStore) AddBookcopy(ctx context.Context, isbn, bookId string) (bookIsbn string, err error) {
+	now := time.Now()
+	err = d.db.GetContext(ctx, &bookIsbn, AddBookCopyQuery, isbn, bookId, now, now)
+	if err != nil {
+		return bookIsbn, err
 	}
 	return
 }

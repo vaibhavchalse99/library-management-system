@@ -20,8 +20,9 @@ func initRouter(dep dependencies) (router *mux.Router) {
 
 	router.HandleFunc("/ping", pingHandler)
 
-	router.HandleFunc("/users", users.Create(dep.UserService)).Methods(http.MethodPost)
-	router.HandleFunc("/users", users.List(dep.UserService)).Methods(http.MethodGet)
+	router.HandleFunc("/users/superadmin", users.CreateSuperAdmin(dep.UserService)).Methods(http.MethodPost)
+	router.HandleFunc("/users", middlewares.IsLoggedIn(users.CreateUser(dep.UserService), dep.UserService)).Methods(http.MethodPost)
+	router.HandleFunc("/users", middlewares.IsLoggedIn(users.ListAllUsers(dep.UserService), dep.UserService)).Methods(http.MethodGet)
 	router.HandleFunc("/users/login", users.UserLogin(dep.UserService)).Methods(http.MethodPost)
 	router.HandleFunc("/users/profile", middlewares.IsLoggedIn(users.GetProfileDetails(dep.UserService), dep.UserService)).Methods(http.MethodGet)
 	router.HandleFunc("/users/profile", middlewares.IsLoggedIn(users.UdateProfileDetails(dep.UserService), dep.UserService)).Methods(http.MethodPut)
@@ -29,6 +30,9 @@ func initRouter(dep dependencies) (router *mux.Router) {
 	router.HandleFunc("/books", middlewares.IsLoggedIn(books.Create(dep.BookService), dep.UserService)).Methods(http.MethodPost)
 	router.HandleFunc("/books", middlewares.IsLoggedIn(books.List(dep.BookService), dep.UserService)).Methods(http.MethodGet)
 	router.HandleFunc("/books/{bookId}", middlewares.IsLoggedIn(books.GetBookById(dep.BookService), dep.UserService)).Methods(http.MethodGet)
+	router.HandleFunc("/books", middlewares.IsLoggedIn(books.UpdateBook(dep.BookService), dep.UserService)).Methods(http.MethodPut)
+
+	router.HandleFunc("/books/copies/add", middlewares.IsLoggedIn(books.AddBookCopy(dep.BookService), dep.UserService)).Methods(http.MethodPost)
 	return
 }
 

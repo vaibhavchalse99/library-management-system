@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/vaibhavchalse99/db"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -11,7 +12,7 @@ type User struct {
 	FullName  string             `json:"fullName,omitempty" bson:"fullName,omitempty"`
 	Email     string             `json:"email,omitempty"`
 	Password  string             `json:"password,omitempty"`
-	Role      string             `json:"role,omitempty"`
+	Role      db.RoleValue       `json:"role,omitempty"`
 	Token     string             `json:"token,omitempty"`
 	CreatedAt time.Time          `json:"createdAt,omitempty"`
 	UpdatedAt time.Time          `json:"updatedAt,omitempty"`

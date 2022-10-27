@@ -2,6 +2,7 @@ package users
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/vaibhavchalse99/db"
 	"go.uber.org/zap"
@@ -85,6 +86,7 @@ func (us *userService) UpdateById(ctx context.Context, req updateRequest, userId
 		us.logger.Error("Invalid request for user updation", "msg", err.Error(), "user", req)
 		return user, errInvalidRequest
 	}
+	fmt.Println(req)
 
 	dbUser, err := us.store.UpdateUserDetailsById(ctx, userId, req.Name, req.Password)
 
@@ -110,7 +112,7 @@ func (us *userService) Login(ctx context.Context, req userCredentials) (response
 		return response, ErrUserNotExist
 	}
 
-	token, err := createToken(dbUser.ID)
+	token, err := createToken(dbUser.ID, dbUser.Role)
 
 	if err != nil {
 		us.logger.Error("Error while creating the token", "user", err.Error())

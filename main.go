@@ -12,6 +12,7 @@ import (
 
 func main() {
 	config.Load()
+	db.LoadRoles()
 	app.Init()
 	defer app.Close()
 

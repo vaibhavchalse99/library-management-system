@@ -10,11 +10,11 @@ import (
 
 const (
 	CreateUserQuery             = `INSERT INTO users(name, email, password, role, created_at, updated_at) VALUES($1,$2,$3,$4,$5,$6)`
-	getUserListQuery            = `SELECT * FROM users`
+	getUserListQuery            = `SELECT * FROM users WHERE role='END_USER'`
 	getUserDetailsQuery         = `SELECT * FROM users WHERE email=$1 AND password=$2`
 	getUserDetailsByIdQuery     = `SELECT * FROM users WHERE id=$1`
-	UpdateUserQueryWithName     = `UPDATE users SET name=$1 updated_at=$2 WHERE ID = $3 RETURNING *`
-	UpdateUserQueryWithPassword = `UPDATE users SET password=$1 updated_at=$2 WHERE ID = $3 RETURNING *`
+	UpdateUserQueryWithName     = `UPDATE users SET name=$1, updated_at=$2 WHERE ID = $3 RETURNING *`
+	UpdateUserQueryWithPassword = `UPDATE users SET password=$1, updated_at=$2 WHERE ID = $3 RETURNING *`
 )
 
 type User struct {
@@ -22,7 +22,7 @@ type User struct {
 	Name      string    `db:"name"`
 	Email     string    `db:"email"`
 	Password  string    `db:"password"`
-	Role      string    `db:"role"`
+	Role      RoleValue `db:"role"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }

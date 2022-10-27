@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/vaibhavchalse99/db"
 )
 
 type listResponse struct {
@@ -13,24 +14,25 @@ type listResponse struct {
 type response struct {
 	User User `json:"user"`
 }
+
 type User struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	Password  string    `json:"password,omitempty"`
-	Role      string    `json:"role"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        uuid.UUID    `json:"id"`
+	Name      string       `json:"name"`
+	Email     string       `json:"email"`
+	Password  string       `json:"password,omitempty"`
+	Role      db.RoleValue `json:"role"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
 }
 
 type tokenResponse struct {
 	Token string `json:"token"`
 }
 type createRequest struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Role     string `json:"role"`
+	Name     string       `json:"name"`
+	Email    string       `json:"email"`
+	Password string       `json:"password"`
+	Role     db.RoleValue `json:"role"`
 }
 
 type updateRequest struct {
@@ -69,6 +71,9 @@ func (req createRequest) Validate() (err error) {
 	}
 	if req.Role == "" {
 		return errEmptyRole
+	}
+	if err = req.Role.Validate(); err != nil {
+		return
 	}
 	if req.Password == "" {
 		return errEmptyPassword

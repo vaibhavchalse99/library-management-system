@@ -1,87 +1,82 @@
 package db
 
-type CRUDPermissions struct {
-	Create, Read, Update, Delete bool
-}
+import (
+	"errors"
 
-type Resources struct {
-	User, Book, BookActivity, BookReport CRUDPermissions
-}
-
-type Roles struct {
-	SuperAdmin, Admin, EndUser Resources
-}
-
-var roles Roles
-
-func LoadRoles() {
-	roles = Roles{
-		SuperAdmin: Resources{
-			User:         CRUDPermissions{true, true, true, true},
-			Book:         CRUDPermissions{true, true, true, true},
-			BookActivity: CRUDPermissions{true, true, true, true},
-		},
-		Admin: Resources{
-			User:         CRUDPermissions{true, true, false, false},
-			Book:         CRUDPermissions{true, true, true, true},
-			BookActivity: CRUDPermissions{true, true, true, true},
-		},
-		EndUser: Resources{
-			User:         CRUDPermissions{false, true, true, false},
-			Book:         CRUDPermissions{false, true, false, false},
-			BookActivity: CRUDPermissions{false, true, false, false},
-		},
-	}
-}
+	"github.com/vaibhavchalse99/config"
+)
 
 type RoleValue string
 type ResourceValue string
+type CRUDPermissionValues string
 
-var (
+const (
 	SuperAdmin RoleValue = "SUPER_ADMIN"
 	Admin      RoleValue = "ADMIN"
 	EndUser    RoleValue = "END_USER"
 )
 
-var (
-	UserResource         ResourceValue = "User"
-	BookResource         ResourceValue = "Book"
-	BookActivityResource ResourceValue = "BookActivity"
-)
+var Roles map[RoleValue][]string
 
-func GetPermissions(role RoleValue, resource ResourceValue) (permissions CRUDPermissions) {
-	if role == SuperAdmin {
-		if resource == UserResource {
-			permissions = roles.SuperAdmin.User
-		}
-		if resource == BookResource {
-			permissions = roles.SuperAdmin.User
-		}
-		if resource == BookActivityResource {
-			permissions = roles.SuperAdmin.User
+func LoadRoles() {
+	Roles = map[RoleValue][]string{
+		SuperAdmin: {
+			config.CreateUserAdmin,
+			config.CreateUser,
+			config.GetUsers,
+			config.UpdateUser,
+			config.DeleteUser,
+			config.CreateBook,
+			config.GetBooks,
+			config.UpdateBook,
+			config.DeleteBook,
+			config.CreateProfile,
+			config.GetProfile,
+			config.UpdateProfile,
+			config.CreateBookActiviy,
+			config.GetBookActivities,
+			config.UpdateBookActiviy,
+			config.DeleteBookActivity,
+		},
+		Admin: {
+			config.CreateUser,
+			config.GetUsers,
+			config.CreateBook,
+			config.GetBooks,
+			config.UpdateBook,
+			config.DeleteBook,
+			config.CreateProfile,
+			config.GetProfile,
+			config.UpdateProfile,
+			config.CreateBookActiviy,
+			config.GetBookActivities,
+			config.UpdateBookActiviy,
+			config.DeleteBookActivity,
+		},
+		EndUser: {
+			config.GetProfile,
+			config.UpdateProfile,
+			config.GetBooks,
+			config.GetBookActivities,
+		},
+	}
+}
+
+func (r RoleValue) Validate() error {
+	switch r {
+	case SuperAdmin, Admin, EndUser:
+		return nil
+	}
+	return errors.New("invalid role")
+}
+
+func IsAuthorized(role RoleValue, permission string) bool {
+	permissions := Roles[role]
+
+	for _, value := range permissions {
+		if value == permission {
+			return true
 		}
 	}
-	if role == Admin {
-		if resource == UserResource {
-			permissions = roles.Admin.User
-		}
-		if resource == BookResource {
-			permissions = roles.Admin.User
-		}
-		if resource == BookActivityResource {
-			permissions = roles.Admin.User
-		}
-	}
-	if role == EndUser {
-		if resource == UserResource {
-			permissions = roles.EndUser.User
-		}
-		if resource == BookResource {
-			permissions = roles.EndUser.User
-		}
-		if resource == BookActivityResource {
-			permissions = roles.EndUser.User
-		}
-	}
-	return
+	return false
 }
