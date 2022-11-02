@@ -48,6 +48,10 @@ type asssignBookCopy struct {
 	ReturnedAt string `json:"returned_at"`
 }
 
+type updateBookRecord struct {
+	RecordId string `json:"record_id"`
+}
+
 type assignBookResponse struct {
 	Message string `json:"message"`
 }
@@ -122,6 +126,13 @@ func (req asssignBookCopy) Validate() (err error) {
 	}
 	if req.ReturnedAt == "" {
 		return errEmptyReturnedAt
+	}
+	return
+}
+
+func (req updateBookRecord) Validate() (err error) {
+	if req.RecordId == "" {
+		return errEmptyRecordId
 	}
 	return
 }

@@ -218,3 +218,31 @@ func GetBookReordsDetailsByIsbnNumber(service Service) http.HandlerFunc {
 		api.Success(rw, http.StatusOK, bookRecords)
 	})
 }
+
+func UpdateBookRecordReturnDate(service Service) http.HandlerFunc {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		//decoding the req body
+		var reqBody updateBookRecord
+		err := json.NewDecoder(r.Body).Decode(&reqBody)
+		if err != nil {
+			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
+			return
+		}
+
+		//checking permission
+		loggedInUser := context.Get(r, "user").(users.User)
+		hasPermission := db.IsAuthorized(loggedInUser.Role, config.UpdateBookActiviy)
+		if !hasPermission {
+			api.Error(rw, http.StatusForbidden, api.Response{Message: "Access Denied"})
+			return
+		}
+
+		//Update the return data
+		err = service.UpdateBookRecordReturnedDate(r.Context(), reqBody)
+		if err != nil {
+			api.Error(rw, http.StatusInternalServerError, api.Response{Message: err.Error()})
+			return
+		}
+		api.Success(rw, http.StatusOK, assignBookResponse{Message: "Successfully updated the book returned date"})
+	})
+}

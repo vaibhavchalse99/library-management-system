@@ -16,6 +16,7 @@ type Service interface {
 	RemoveBookCopy(ctx context.Context, req deleteBookCopy) (isbn string, err error)
 	AssignBookCopy(ctx context.Context, req asssignBookCopy) (err error)
 	GetBookRecordsInfoByIsbnNumber(ctx context.Context, isbn string) (bookRecord bookRecordDetails, err error)
+	UpdateBookRecordReturnedDate(ctx context.Context, req updateBookRecord) (err error)
 }
 
 type bookService struct {
@@ -132,6 +133,13 @@ func (bs *bookService) AssignBookCopy(ctx context.Context, req asssignBookCopy) 
 		return
 	}
 
+	//get book copy status
+	_, err = bs.store.GetBookCopyStatus(ctx, req.BookCopyId)
+	if err != nil {
+		bs.logger.Errorw("Book copy status error", "error", err.Error())
+		return
+	}
+
 	//get book id
 	bookId, err := bs.store.GetBookId(ctx, req.BookCopyId)
 	if err != nil {
@@ -173,6 +181,21 @@ func (bs *bookService) GetBookRecordsInfoByIsbnNumber(ctx context.Context, isbn 
 		return
 	}
 	bookRecord = bookRecordDetails(dbBookRecords)
+	return
+}
+
+func (bs *bookService) UpdateBookRecordReturnedDate(ctx context.Context, req updateBookRecord) (err error) {
+	err = req.Validate()
+	if err != nil {
+		bs.logger.Errorw("invalid request to update the returned date of the book", "msg", err.Error(), "req", req)
+		return
+	}
+
+	err = bs.store.UpdateBookRecordReturnedDate(ctx, req.RecordId)
+	if err != nil {
+		bs.logger.Errorw("Error while updating the returned date of book", "error", err.Error())
+		return
+	}
 	return
 }
 

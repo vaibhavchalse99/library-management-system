@@ -45,11 +45,13 @@ var (
 	DeleteBookCopyQuery = `DELETE FROM book_copies WHERE isbn=$1 RETURNING isbn`
 
 	AssignBookQuery           = `INSERT INTO records(book_copy_id, user_id, returned_at) VALUES($1,$2,$3)`
-	UpdateBookCopyStatusQuery = `UPDATE book_copies SET status='Issued' WHERE isbn=$1`
+	UpdateBookCopyStatusQuery = `UPDATE book_copies SET status=$2 WHERE isbn=$1`
 
+	GetBookCopyStatusQuery          = `SELECT status FROM book_copies WHERE isbn=$1`
 	GetBookIdQuery                  = `SELECT book_id FROM book_copies where isbn=$1`
 	GetAllIssuedBookIdsQuery        = `SELECT bc.book_id FROM book_copies bc, records r WHERE r.book_copy_id = bc.isbn AND r.user_id = $1 AND $2 > r.issued_at AND $2 < r.returned_at`
-	getRecordsInfoByIsbnNumberQuery = `SELECT r.id AS id, bc.isbn AS book_isbn, b.id AS book_id, b.name AS book_name, b.author AS book_author, b.price AS book_price, u.id AS user_id, u.name AS user_name, u.email AS user_email, r.issued_at AS book_issued_at, r.returned_at AS book_returned_at FROM records AS r INNER JOIN book_copies AS bc ON r.book_copy_id = bc.isbn INNER JOIN books AS b ON bc.book_id = b.id INNER JOIN users AS u ON r.user_id = u.id WHERE r.book_copy_id=$1`
+	getRecordsInfoByIsbnNumberQuery = `SELECT r.id AS id, bc.isbn AS book_isbn, b.id AS book_id, b.name AS book_name, b.author AS book_author, b.price AS book_price, u.id AS user_id, u.name AS user_name, u.email AS user_email, r.issued_at AS book_issued_at, r.returned_at AS book_returned_at FROM records AS r INNER JOIN book_copies AS bc ON r.book_copy_id = bc.isbn INNER JOIN books AS b ON bc.book_id = b.id INNER JOIN users AS u ON r.user_id = u.id WHERE r.book_copy_id=$1 AND r.issued_at < $2 AND r.returned_at > $2`
+	UpdateBookRecordReturnedDate    = `UPDATE records SET returned_at=$1 WHERE id=$2 RETURNING book_copy_id`
 )
 
 func (d *bookStore) CreateBook(ctx context.Context, name string, author string, price int) (book Book, err error) {
@@ -126,11 +128,25 @@ func (d *bookStore) AssignBook(ctx context.Context, bookCopyId, userId string, r
 			return err
 		}
 
-		if _, err = d.db.Query(UpdateBookCopyStatusQuery, bookCopyId); err != nil {
+		if _, err = d.db.Query(UpdateBookCopyStatusQuery, bookCopyId, "Issued"); err != nil {
 			return err
 		}
 		return nil
 	})
+	return
+}
+
+func (d *bookStore) GetBookCopyStatus(ctx context.Context, book_copy_id string) (status string, err error) {
+	err = d.db.GetContext(ctx, &status, GetBookCopyStatusQuery, book_copy_id)
+	if err == sql.ErrNoRows {
+		return status, ErrBooksCopyNotExist
+	}
+	if status == "Not Available" {
+		return status, ErrBooksCopyNotAvailable
+	}
+	if status == "Issued" {
+		return status, ErrBookCopyAlreadyIssued
+	}
 	return
 }
 
@@ -151,9 +167,42 @@ func (d *bookStore) GetAllIssuedBookIds(ctx context.Context, userId string) (boo
 }
 
 func (d bookStore) GetRecordsInfoByIsbnNumber(ctx context.Context, isbn string) (bookRecord bookRecordDetails, err error) {
-	err = d.db.GetContext(ctx, &bookRecord, getRecordsInfoByIsbnNumberQuery, isbn)
+	err = d.db.GetContext(ctx, &bookRecord, getRecordsInfoByIsbnNumberQuery, isbn, time.Now())
 	if err == sql.ErrNoRows {
-		return bookRecord, ErrBooksNotExist
+		return bookRecord, ErrBooksNotAssigned
 	}
+	return
+}
+
+func (d bookStore) UpdateBookRecordReturnedDate(ctx context.Context, recordId string) (err error) {
+
+	tx, err := d.db.BeginTxx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		if err != nil {
+			e := tx.Rollback()
+			if e != nil {
+				err = errors.WithStack(e)
+				return
+			}
+		}
+		tx.Commit()
+	}()
+
+	ctxWithTx := newContext(ctx, tx)
+	WithDefaultTimeout(ctxWithTx, func(ctx context.Context) error {
+		var bookCopyId string
+		if err = d.db.GetContext(ctx, &bookCopyId, UpdateBookRecordReturnedDate, time.Now(), recordId); err != nil {
+			return err
+		}
+
+		if _, err = d.db.Query(UpdateBookCopyStatusQuery, bookCopyId, "Available"); err != nil {
+			return err
+		}
+		return nil
+	})
 	return
 }

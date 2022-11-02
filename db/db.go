@@ -13,7 +13,7 @@ type ctxKey int
 
 const (
 	dbKey          ctxKey = 0
-	defaultTimeout        = 1 * time.Second
+	defaultTimeout        = 10 * time.Second
 )
 
 type UserStorer interface {
@@ -90,9 +90,11 @@ type BookStorer interface {
 	AddBookcopy(ctx context.Context, isbn, bookId string) (bookIsbn string, err error)
 	RemoveBookcopy(ctx context.Context, isbn string) (bookIsbn string, err error)
 	AssignBook(ctx context.Context, bookCopyId, userId string, returnedAt time.Time) (err error)
+	GetBookCopyStatus(ctx context.Context, book_copy_id string) (status string, err error)
 	GetBookId(ctx context.Context, book_copy_id string) (bookId string, err error)
 	GetAllIssuedBookIds(ctx context.Context, userId string) (bookIds []string, err error)
 	GetRecordsInfoByIsbnNumber(ctx context.Context, isbn string) (bookRecord bookRecordDetails, err error)
+	UpdateBookRecordReturnedDate(ctx context.Context, recordId string) (err error)
 }
 
 func NewBookStorer(d *sqlx.DB) BookStorer {

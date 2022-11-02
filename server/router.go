@@ -38,6 +38,8 @@ func initRouter(dep dependencies) (router *mux.Router) {
 	router.HandleFunc("/books/copies/assign", middlewares.IsLoggedIn(books.AssignBook(dep.BookService), dep.UserService)).Methods(http.MethodPost)
 	router.HandleFunc("/books/records/{isbn}", middlewares.IsLoggedIn(books.GetBookReordsDetailsByIsbnNumber(dep.BookService), dep.UserService)).Methods(http.MethodGet)
 
+	router.HandleFunc("/books/records", middlewares.IsLoggedIn(books.UpdateBookRecordReturnDate(dep.BookService), dep.UserService)).Methods(http.MethodPut)
+
 	return
 }
 

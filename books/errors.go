@@ -13,4 +13,5 @@ var (
 	errEmptyUserId        = errors.New("user id must be present")
 	errEmptyReturnedAt    = errors.New("book returned data must be present")
 	errEBookAlreadyIssued = errors.New("this book is already issued by the user")
+	errEmptyRecordId      = errors.New("record id must be present")
 )
