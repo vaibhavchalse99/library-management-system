@@ -15,6 +15,7 @@ type Service interface {
 	AddBookCopy(ctx context.Context, req createBookCopy) (isbn string, err error)
 	RemoveBookCopy(ctx context.Context, req deleteBookCopy) (isbn string, err error)
 	AssignBookCopy(ctx context.Context, req asssignBookCopy) (err error)
+	GetBookRecordsInfoByIsbnNumber(ctx context.Context, isbn string) (bookRecord bookRecordDetails, err error)
 }
 
 type bookService struct {
@@ -157,6 +158,21 @@ func (bs *bookService) AssignBookCopy(ctx context.Context, req asssignBookCopy) 
 		bs.logger.Errorw("Error while assigning a book", "error", err.Error())
 		return
 	}
+	return
+}
+
+func (bs *bookService) GetBookRecordsInfoByIsbnNumber(ctx context.Context, isbn string) (bookRecord bookRecordDetails, err error) {
+	if isbn == "" {
+		bs.logger.Errorw("Invalid request to get the records details")
+		return bookRecord, errEmptyBookNumber
+	}
+
+	dbBookRecords, err := bs.store.GetRecordsInfoByIsbnNumber(ctx, isbn)
+	if err != nil {
+		bs.logger.Errorw("Error while getching the records details by book isbn numberr", "error", err.Error())
+		return
+	}
+	bookRecord = bookRecordDetails(dbBookRecords)
 	return
 }
 

@@ -52,6 +52,20 @@ type assignBookResponse struct {
 	Message string `json:"message"`
 }
 
+type bookRecordDetails struct {
+	Id             string    `json:"id"`
+	BookISBN       string    `json:"book_isbn"`
+	BookId         uuid.UUID `josn:"book_id"`
+	BookName       string    `json:"book_name"`
+	BookAuthor     string    `json:"book_author"`
+	BookPrice      int       `json:"book_price"`
+	UserId         uuid.UUID `json:"user_id"`
+	UserName       string    `json:"user_name"`
+	UserEmail      string    `json:"user_email"`
+	BookIssuedAt   time.Time `json:"book_issued_at"`
+	BookReturnedAt time.Time `json:"book_returned_at"`
+}
+
 func (req createBookRequest) Validate() (err error) {
 	if req.Name == "" {
 		return errEmptyName

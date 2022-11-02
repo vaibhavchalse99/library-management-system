@@ -36,6 +36,7 @@ func initRouter(dep dependencies) (router *mux.Router) {
 	router.HandleFunc("/books/copies/remove", middlewares.IsLoggedIn(books.RemoveBookCopy(dep.BookService), dep.UserService)).Methods(http.MethodPost)
 
 	router.HandleFunc("/books/copies/assign", middlewares.IsLoggedIn(books.AssignBook(dep.BookService), dep.UserService)).Methods(http.MethodPost)
+	router.HandleFunc("/books/records/{isbn}", middlewares.IsLoggedIn(books.GetBookReordsDetailsByIsbnNumber(dep.BookService), dep.UserService)).Methods(http.MethodGet)
 
 	return
 }

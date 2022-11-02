@@ -195,3 +195,26 @@ func AssignBook(service Service) http.HandlerFunc {
 		api.Success(rw, http.StatusOK, assignBookResponse{Message: "Book Assigned Successfully"})
 	})
 }
+
+func GetBookReordsDetailsByIsbnNumber(service Service) http.HandlerFunc {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		//get isbn from req params
+		params := mux.Vars(r)
+		isbnNumber := params["isbn"]
+		//checking permission
+		loggedInUser := context.Get(r, "user").(users.User)
+		hasPermission := db.IsAuthorized(loggedInUser.Role, config.GetBookActivities)
+		if !hasPermission {
+			api.Error(rw, http.StatusForbidden, api.Response{Message: "Access Denied"})
+			return
+		}
+
+		//get the user info
+		bookRecords, err := service.GetBookRecordsInfoByIsbnNumber(r.Context(), isbnNumber)
+		if err != nil {
+			api.Error(rw, http.StatusInternalServerError, api.Response{Message: err.Error()})
+			return
+		}
+		api.Success(rw, http.StatusOK, bookRecords)
+	})
+}

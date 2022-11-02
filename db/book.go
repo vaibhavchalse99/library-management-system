@@ -19,6 +19,20 @@ type Book struct {
 	UpdatedAt   time.Time `db:"updated_at"`
 }
 
+type bookRecordDetails struct {
+	Id             string    `db:"id"`
+	BookISBN       string    `db:"book_isbn"`
+	BookId         uuid.UUID `db:"book_id"`
+	BookName       string    `db:"book_name"`
+	BookAuthor     string    `db:"book_author"`
+	BookPrice      int       `db:"book_price"`
+	UserId         uuid.UUID `db:"user_id"`
+	UserName       string    `db:"user_name"`
+	UserEmail      string    `db:"user_email"`
+	BookIssuedAt   time.Time `db:"book_issued_at"`
+	BookReturnedAt time.Time `db:"book_returned_at"`
+}
+
 var (
 	CreateBookQuery  = `INSERT INTO books(name, author, price, created_at, updated_at) VALUES($1,$2,$3,$4,$5) RETURNING *`
 	GetBookListQuery = `SELECT books.*,(SELECT COUNT(*) as copies_count FROM book_copies WHERE book_copies.book_id = books.id) FROM books`
@@ -30,8 +44,9 @@ var (
 
 	AssignBookQuery = `INSERT INTO records(book_copy_id, user_id, returned_at) VALUES($1,$2,$3)`
 
-	GetBookIdQuery           = `SELECT book_id FROM book_copies where isbn=$1`
-	GetAllIssuedBookIdsQuery = `SELECT bc.book_id FROM book_copies bc, records r WHERE r.book_copy_id = bc.isbn AND r.user_id = $1 AND $2 > r.issued_at AND $2 < r.returned_at`
+	GetBookIdQuery                  = `SELECT book_id FROM book_copies where isbn=$1`
+	GetAllIssuedBookIdsQuery        = `SELECT bc.book_id FROM book_copies bc, records r WHERE r.book_copy_id = bc.isbn AND r.user_id = $1 AND $2 > r.issued_at AND $2 < r.returned_at`
+	getRecordsInfoByIsbnNumberQuery = `SELECT r.id AS id, bc.isbn AS book_isbn, b.id AS book_id, b.name AS book_name, b.author AS book_author, b.price AS book_price, u.id AS user_id, u.name AS user_name, u.email AS user_email, r.issued_at AS book_issued_at, r.returned_at AS book_returned_at FROM records AS r INNER JOIN book_copies AS bc ON r.book_copy_id = bc.isbn INNER JOIN books AS b ON bc.book_id = b.id INNER JOIN users AS u ON r.user_id = u.id WHERE r.book_copy_id=$1`
 )
 
 func (d *bookStore) CreateBook(ctx context.Context, name string, author string, price int) (book Book, err error) {
@@ -104,6 +119,14 @@ func (d *bookStore) GetAllIssuedBookIds(ctx context.Context, userId string) (boo
 	err = d.db.SelectContext(ctx, &bookIds, GetAllIssuedBookIdsQuery, userId, time.Now())
 	if err == sql.ErrNoRows {
 		return bookIds, ErrBooksNotExist
+	}
+	return
+}
+
+func (d bookStore) GetRecordsInfoByIsbnNumber(ctx context.Context, isbn string) (bookRecord bookRecordDetails, err error) {
+	err = d.db.GetContext(ctx, &bookRecord, getRecordsInfoByIsbnNumberQuery, isbn)
+	if err == sql.ErrNoRows {
+		return bookRecord, ErrBooksNotExist
 	}
 	return
 }
