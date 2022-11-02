@@ -156,6 +156,7 @@ func RemoveBookCopy(service Service) http.HandlerFunc {
 			api.Error(rw, http.StatusForbidden, api.Response{Message: "Access Denied"})
 			return
 		}
+
 		//add bookcopy
 		isbn, err := service.RemoveBookCopy(r.Context(), reqbody)
 		if err != nil {
@@ -163,5 +164,34 @@ func RemoveBookCopy(service Service) http.HandlerFunc {
 			return
 		}
 		api.Success(rw, http.StatusOK, ISBNResponse{ISBN: isbn})
+	})
+}
+
+func AssignBook(service Service) http.HandlerFunc {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		//decoding the req data
+		var reqBody asssignBookCopy
+		err := json.NewDecoder(r.Body).Decode(&reqBody)
+		if err != nil {
+			api.Error(rw, http.StatusBadRequest, api.Response{Message: err.Error()})
+			return
+		}
+
+		//checking permission
+		loggedInUser := context.Get(r, "user").(users.User)
+		hasPermission := db.IsAuthorized(loggedInUser.Role, config.CreateBookActiviy)
+		if !hasPermission {
+			api.Error(rw, http.StatusForbidden, api.Response{Message: "Access Denied"})
+			return
+		}
+
+		//assign a book to user
+		err = service.AssignBookCopy(r.Context(), reqBody)
+
+		if err != nil {
+			api.Error(rw, http.StatusInternalServerError, api.Response{Message: err.Error()})
+			return
+		}
+		api.Success(rw, http.StatusOK, assignBookResponse{Message: "Book Assigned Successfully"})
 	})
 }

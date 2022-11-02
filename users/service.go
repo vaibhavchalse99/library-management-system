@@ -2,7 +2,6 @@ package users
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/vaibhavchalse99/db"
 	"go.uber.org/zap"
@@ -86,7 +85,6 @@ func (us *userService) UpdateById(ctx context.Context, req updateRequest, userId
 		us.logger.Error("Invalid request for user updation", "msg", err.Error(), "user", req)
 		return user, errInvalidRequest
 	}
-	fmt.Println(req)
 
 	dbUser, err := us.store.UpdateUserDetailsById(ctx, userId, req.Name, req.Password)
 

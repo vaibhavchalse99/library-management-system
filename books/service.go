@@ -14,6 +14,7 @@ type Service interface {
 	UpdateBookById(ctx context.Context, req updateBookRequest) (book Book, err error)
 	AddBookCopy(ctx context.Context, req createBookCopy) (isbn string, err error)
 	RemoveBookCopy(ctx context.Context, req deleteBookCopy) (isbn string, err error)
+	AssignBookCopy(ctx context.Context, req asssignBookCopy) (err error)
 }
 
 type bookService struct {
@@ -112,6 +113,48 @@ func (bs *bookService) RemoveBookCopy(ctx context.Context, req deleteBookCopy) (
 	isbn, err = bs.store.RemoveBookcopy(ctx, req.ISBN)
 	if err != nil {
 		bs.logger.Errorw("Error while ading a copy", "error", err.Error())
+		return
+	}
+	return
+}
+
+func (bs *bookService) AssignBookCopy(ctx context.Context, req asssignBookCopy) (err error) {
+	err = req.Validate()
+	if err != nil {
+		bs.logger.Errorw("invalid request to assign a book to user", "msg", err.Error(), "req", req)
+		return
+	}
+
+	err, timeStamp := getEndOfTheDay(req.ReturnedAt)
+	if err != nil {
+		bs.logger.Errorw("Error while parsing the time", "msg", err.Error(), "req", req)
+		return
+	}
+
+	//get book id
+	bookId, err := bs.store.GetBookId(ctx, req.BookCopyId)
+	if err != nil {
+		bs.logger.Errorw("Error while getting the book id", "error", err.Error())
+		return
+	}
+
+	//get all the books id which are currently issued by user
+	booksIds, err := bs.store.GetAllIssuedBookIds(ctx, req.UserId)
+	if err != nil {
+		bs.logger.Errorw("Error while getting issued books ids", "error", err.Error())
+	}
+
+	for _, bId := range booksIds {
+		if bookId == bId {
+			return errEBookAlreadyIssued
+		}
+	}
+
+	//assign book to user
+	err = bs.store.AssignBook(ctx, req.BookCopyId, req.UserId, timeStamp)
+
+	if err != nil {
+		bs.logger.Errorw("Error while assigning a book", "error", err.Error())
 		return
 	}
 	return

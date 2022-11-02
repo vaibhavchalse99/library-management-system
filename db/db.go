@@ -89,6 +89,9 @@ type BookStorer interface {
 	UpdateBook(ctx context.Context, id, author, name string, price int) (book Book, err error)
 	AddBookcopy(ctx context.Context, isbn, bookId string) (bookIsbn string, err error)
 	RemoveBookcopy(ctx context.Context, isbn string) (bookIsbn string, err error)
+	AssignBook(ctx context.Context, bookCopyId, userId string, returnedAt time.Time) (err error)
+	GetBookId(ctx context.Context, book_copy_id string) (bookId string, err error)
+	GetAllIssuedBookIds(ctx context.Context, userId string) (bookIds []string, err error)
 }
 
 func NewBookStorer(d *sqlx.DB) BookStorer {

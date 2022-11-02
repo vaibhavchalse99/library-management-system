@@ -263,7 +263,6 @@ func GetBookList(w http.ResponseWriter, r *http.Request) {
 		cursor, err = bookCollection.Find(context.Background(), bson.D{{}})
 	}
 	if err != nil {
-		fmt.Println(err)
 		json.NewEncoder(w).Encode(ErrMsg{Message: "something went wrong"})
 		return
 	}
@@ -274,7 +273,6 @@ func GetBookList(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(ErrMsg{Message: "something went wrong"})
 			return
 		}
-		fmt.Println(book)
 		bookList = append(bookList, book)
 	}
 	defer cursor.Close(context.Background())
@@ -370,7 +368,6 @@ func AssignBook(w http.ResponseWriter, r *http.Request) {
 
 	returnedDate, err := time.Parse(time.RFC3339, record.ReturnedAt)
 	if err != nil {
-		fmt.Println(returnedDate)
 		json.NewEncoder(w).Encode(ErrMsg{Message: "please enter returned date"})
 		return
 	}

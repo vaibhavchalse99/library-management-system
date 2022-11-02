@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS book_index ON "books"("name","author");

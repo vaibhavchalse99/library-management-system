@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -36,7 +35,6 @@ func verifyJwt(bearerToken string) (*jwt.Token, error) {
 func IsLoggedIn(next http.HandlerFunc, service users.Service) http.HandlerFunc {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		tokenValue, err := getAuthTokenFromHeader(r)
-		fmt.Println(tokenValue)
 		if err == ErrTokenNotPresent {
 			api.Error(rw, http.StatusNotFound, api.Response{Message: ErrTokenNotPresent.Error()})
 			return
