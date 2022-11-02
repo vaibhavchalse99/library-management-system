@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/google/uuid"
 )
 
@@ -42,7 +44,8 @@ var (
 	AddBookCopyQuery    = `INSERT INTO book_copies(isbn, book_id, created_at, updated_at) VALUES($1,$2,$3,$4) RETURNING isbn`
 	DeleteBookCopyQuery = `DELETE FROM book_copies WHERE isbn=$1 RETURNING isbn`
 
-	AssignBookQuery = `INSERT INTO records(book_copy_id, user_id, returned_at) VALUES($1,$2,$3)`
+	AssignBookQuery           = `INSERT INTO records(book_copy_id, user_id, returned_at) VALUES($1,$2,$3)`
+	UpdateBookCopyStatusQuery = `UPDATE book_copies SET status='Issued' WHERE isbn=$1`
 
 	GetBookIdQuery                  = `SELECT book_id FROM book_copies where isbn=$1`
 	GetAllIssuedBookIdsQuery        = `SELECT bc.book_id FROM book_copies bc, records r WHERE r.book_copy_id = bc.isbn AND r.user_id = $1 AND $2 > r.issued_at AND $2 < r.returned_at`
@@ -100,10 +103,34 @@ func (d *bookStore) RemoveBookcopy(ctx context.Context, isbn string) (bookIsbn s
 
 func (d *bookStore) AssignBook(ctx context.Context, bookCopyId, userId string, returnedAt time.Time) (err error) {
 
-	_, err = d.db.Query(AssignBookQuery, bookCopyId, userId, returnedAt)
+	tx, err := d.db.BeginTxx(ctx, &sql.TxOptions{})
 	if err != nil {
-		return err
+		return
 	}
+
+	defer func() {
+		if err != nil {
+			e := tx.Rollback()
+			if e != nil {
+				err = errors.WithStack(e)
+				return
+			}
+		}
+		tx.Commit()
+	}()
+
+	ctxWithTx := newContext(ctx, tx)
+	WithDefaultTimeout(ctxWithTx, func(ctx context.Context) error {
+
+		if _, err = d.db.Query(AssignBookQuery, bookCopyId, userId, returnedAt); err != nil {
+			return err
+		}
+
+		if _, err = d.db.Query(UpdateBookCopyStatusQuery, bookCopyId); err != nil {
+			return err
+		}
+		return nil
+	})
 	return
 }
 
